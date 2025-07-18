@@ -1,47 +1,36 @@
-image: python:3.8.13-buster
+# This is a basic workflow to help you get started with Actions
 
-.join_script:
-  before_script:
-    - git config --global http.sslVerify "false"
-    - apt-get update
-    - apt-get install minify
-    - pip install mkdocs mkdocs-material pymdown-extensions pipenv
-    - pipenv lock
-    - pipenv install --deploy
+name: CI
 
-stages:
-  - validation
-  - deploy
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
-validation:
-  rules:
-    - if: $CI_COMMIT_REF_NAME != $CI_DEFAULT_BRANCH
-  stage: validation
-  extends:
-    - .join_script
-  script:
-    - pipenv run mkdocs build --site-dir test
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
 
-build:
-  rules:
-    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
-  stage: deploy
-  extends:
-    - .join_script
-  script:
-    - pipenv run mkdocs build --site-dir public
-  artifacts:
-    paths:
-      - public
-    expire_in: 1 week
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
 
-deploy:
-  rules:
-    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
-  stage: deploy
-  image: docker-hub.artifactory.globoi.com/tsuru/client:latest
-  script:
-    - tsuru app deploy -a iwiki public/
-  needs:
-    - job: build
-    
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+
+      # Runs a single command using the runners shell
+      - name: Run a one-line script
+        run: echo Hello, world!
+
+      # Runs a set of commands using the runners shell
+      - name: Run a multi-line script
+        run: |
+          echo Add other actions to build,
+          echo test, and deploy your project.
